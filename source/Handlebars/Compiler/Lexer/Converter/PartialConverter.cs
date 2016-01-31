@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using HandlebarsDotNet.Compiler.Lexer;
@@ -18,10 +19,13 @@ namespace HandlebarsDotNet.Compiler
 
         public override IEnumerable<object> ConvertTokens(IEnumerable<object> sequence)
         {
+            string indent = string.Empty;
             var enumerator = sequence.GetEnumerator();
+            var first = true;
             while (enumerator.MoveNext())
             {
                 var item = enumerator.Current;
+                var staticExpression = item as StaticExpression;
                 var partialToken = item as PartialToken;
                 if (partialToken != null)
                 {
@@ -29,11 +33,11 @@ namespace HandlebarsDotNet.Compiler
                     var arguments = AccumulateArguments(enumerator);
                     if (arguments.Count == 0)
                     {
-                        yield return HandlebarsExpression.Partial(partialName);
+                        yield return HandlebarsExpression.Partial(partialName, indent);
                     }
                     else if (arguments.Count == 1)
                     {
-                        yield return HandlebarsExpression.Partial(partialName, arguments[0]);
+                        yield return HandlebarsExpression.Partial(partialName, indent, arguments[0]);
                     }
                     else
                     {
@@ -41,11 +45,31 @@ namespace HandlebarsDotNet.Compiler
                     }
                     yield return enumerator.Current;
                 }
-                else
+                else if (staticExpression != null)
                 {
+                    indent = GetIndent(staticExpression.Value, first);
                     yield return item;
                 }
+                else
+                {
+                    if (!(item is StartExpressionToken))
+                    {
+                        indent = string.Empty;
+                    }
+                    yield return item;
+                }
+                first = false;
             }
+        }
+
+        private static string GetIndent(string value, bool first)
+        {
+            var index = value.LastIndexOf("\n") + 1;
+            return index > 0 && string.IsNullOrWhiteSpace(value.Substring(index))
+                ? value.Substring(index)
+                : first && string.IsNullOrWhiteSpace(value)
+                    ? value
+                    : string.Empty;
         }
 
         private static List<Expression> AccumulateArguments(IEnumerator<object> enumerator)

@@ -50,7 +50,13 @@ namespace HandlebarsDotNet
 		{
 			get { return _underlyingWriter.Encoding; }
 		}
-		private static string HtmlEncode(string text)
+
+	    public override string ToString()
+	    {
+	        return _underlyingWriter.ToString();
+	    }
+
+	    private static string HtmlEncode(string text)
 		{
 			if (text == null)
 				return String.Empty;

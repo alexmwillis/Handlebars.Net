@@ -8,11 +8,13 @@ namespace HandlebarsDotNet.Compiler
     {
         private readonly string _partialName;
         private readonly Expression _argument;
+        private readonly string _indent;
 
-        public PartialExpression(string partialName, Expression argument)
+        public PartialExpression(string partialName, string indent, Expression argument)
         {
             _partialName = partialName;
             _argument = argument;
+            _indent = indent;
         }
 
         public override ExpressionType NodeType
@@ -33,6 +35,10 @@ namespace HandlebarsDotNet.Compiler
         public Expression Argument
         {
             get { return _argument; }
+        }
+
+        public string Indent {
+            get { return _indent; }
         }
     }
 }

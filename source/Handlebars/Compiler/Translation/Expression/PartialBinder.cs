@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq.Expressions;
 
 namespace HandlebarsDotNet.Compiler
@@ -38,16 +39,18 @@ namespace HandlebarsDotNet.Compiler
                     pex.Argument);
             }
             return Expression.Call(
-                new Action<string, BindingContext, HandlebarsConfiguration>(InvokePartial).Method,
+                new Action<string, BindingContext, HandlebarsConfiguration, string>(InvokePartial).Method,
                 Expression.Constant(pex.PartialName),
                 bindingContext,
-                Expression.Constant(CompilationContext.Configuration));
+                Expression.Constant(CompilationContext.Configuration),
+                Expression.Constant(pex.Indent));
         }
 
         private static void InvokePartial(
             string partialName,
             BindingContext context,
-            HandlebarsConfiguration configuration)
+            HandlebarsConfiguration configuration,
+            string indent)
         {
             if (configuration.RegisteredTemplates.ContainsKey(partialName) == false)
             {
@@ -61,7 +64,7 @@ namespace HandlebarsDotNet.Compiler
                             .CompileView(partialPath);
                         configuration.RegisteredTemplates.Add(partialName, (writer, o) =>
                         {
-                            writer.Write(compiled(o));
+                            writer.Write(compiled(o) + "abc");
                         });
                     }
                 }
@@ -71,7 +74,18 @@ namespace HandlebarsDotNet.Compiler
                         string.Format("Referenced partial name {0} could not be resolved", partialName));
                 }
             }
-            configuration.RegisteredTemplates[partialName](context.TextWriter, context);
+            using (var partialWriter = new StringWriter())
+            {
+                var partialContext =
+                    new BindingContext(context.Value, partialWriter, context.ParentContext, context.TemplatePath);
+                configuration.RegisteredTemplates[partialName](partialContext.TextWriter, partialContext.Value);
+                context.TextWriter.WriteSafeString(Indent(partialContext.TextWriter, indent));
+            }
+        }
+
+        private static string Indent(TextWriter writer, string indent)
+        {
+            return writer.ToString().Replace(writer.NewLine, writer.NewLine + indent);
         }
     }
 }

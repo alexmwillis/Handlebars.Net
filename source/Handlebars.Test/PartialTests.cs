@@ -186,6 +186,43 @@ namespace HandlebarsDotNet.Test
             var result = template(data);
             Assert.AreEqual("Hello, Marc!", result);
         }
+
+        [TestCase("    ")]
+        [TestCase("           ")]
+        public void Indentation(string indent)
+        {
+            string source = "\r\n" + indent + "{{> indented}}";
+
+            var template = Handlebars.Compile(source);
+
+            var partialSource = "<first line>\r\n<second line>";
+            using (var reader = new StringReader(partialSource))
+            {
+                var partialTemplate = Handlebars.Compile(reader);
+                Handlebars.RegisterTemplate("indented", partialTemplate);
+            }
+
+            var result = template(null);
+            Assert.AreEqual(string.Format("\r\n{0}<first line>\r\n{0}<second line>", indent), result);
+        }
+
+        [Test]
+        public void NoIndentation()
+        {
+            string source = "\r\nnot {{> indented}}";
+
+            var template = Handlebars.Compile(source);
+
+            var partialSource = "<first line>\r\n<second line>";
+            using (var reader = new StringReader(partialSource))
+            {
+                var partialTemplate = Handlebars.Compile(reader);
+                Handlebars.RegisterTemplate("indented", partialTemplate);
+            }
+
+            var result = template(null);
+            Assert.AreEqual("\r\nnot <first line>\r\n<second line>", result);
+        }
     }
 }
 
