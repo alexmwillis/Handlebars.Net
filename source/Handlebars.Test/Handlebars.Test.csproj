@@ -68,6 +68,7 @@
     <Compile Include="CustomConfigurationTests.cs" />
     <Compile Include="DynamicTests.cs" />
     <Compile Include="HelperTests.cs" />
+    <Compile Include="StandaloneExpressionsTests.cs" />
     <Compile Include="TripleStashTests.cs" />
     <Compile Include="PartialTests.cs" />
     <Compile Include="IteratorTests.cs" />

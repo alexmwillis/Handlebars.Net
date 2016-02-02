@@ -33,6 +33,8 @@ namespace HandlebarsDotNet.Compiler.Lexer
             get { return TokenType.StartExpression; }
         }
 
+        public bool ExpressionIsStandalone { get; set; }
+
         public override string ToString()
         {
             return this.Value;
